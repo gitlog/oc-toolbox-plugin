@@ -1,8 +1,13 @@
 <?php namespace Lovata\Toolbox\Classes\Event;
 
+use Illuminate\Support\Facades\Queue;
 use Lovata\Toolbox\Classes\Store\AbstractStoreWithoutParam;
 use Lovata\Toolbox\Classes\Store\AbstractStoreWithParam;
 use Lovata\Toolbox\Classes\Store\AbstractStoreWithTwoParam;
+use Lovata\Toolbox\Classes\Queue\CleanCacheItemJob;
+use Lovata\Toolbox\Classes\Queue\CleanSingleParamStoreCacheJob;
+use Lovata\Toolbox\Classes\Queue\CleanTwoParamStoreCacheJob;
+use Lovata\Toolbox\Models\Settings;
 
 /**
  * Class ModelHandler
@@ -118,7 +123,14 @@ abstract class ModelHandler
         $sItemClass = $this->getItemClass();
         $sField = $this->sIdentifierField;
 
-        $sItemClass::clearCache($this->obElement->$sField);
+        if (Settings::getValue("cache_queue_on", false) && ($sQueueName = Settings::getValue("cache_queue_name", "cache"))) {
+
+            $this->dispatchCleanCacheItemJob($sQueueName, $sItemClass, $this->obElement->$sField, $this->obElement->getOriginal($sField));
+
+        } else {
+
+            $sItemClass::clearCache($this->obElement->$sField);
+        }
     }
 
     /**
@@ -132,9 +144,29 @@ abstract class ModelHandler
             return;
         }
 
-        if ($obListStore instanceof AbstractStoreWithoutParam) {
+        if (Settings::getValue("cache_queue_on", false) && ($sQueueName = Settings::getValue("cache_queue_name", "cache"))) {
+
+            if (is_string($sField)) {
+
+                $sField = [$sField];
+            }
+
+            foreach ($sField as $sFieldCode) {
+
+                $this->dispatchCleanSingleParamStoreJob($sQueueName, $obListStore, $this->obElement->$sFieldCode, $this->obElement->getOriginal($sFieldCode));
+                if ($obListStore instanceof AbstractStoreWithoutParam) {
+                    $this->dispatchCleanSingleParamStoreJob($sQueueName, $obListStore);
+                } elseif ($obListStore instanceof AbstractStoreWithParam) {
+                    $this->dispatchCleanSingleParamStoreJob($sQueueName, $obListStore, $this->obElement->$sFieldCode, $this->obElement->getOriginal($sFieldCode));
+                }
+            }
+
+        } elseif ($obListStore instanceof AbstractStoreWithoutParam) {
+
             $obListStore->clear();
+
         } elseif ($obListStore instanceof AbstractStoreWithParam) {
+
             $obListStore->clear($this->obElement->$sField);
             $obListStore->clear($this->obElement->getOriginal($sField));
         }
@@ -151,7 +183,15 @@ abstract class ModelHandler
             return;
         }
 
-        if ($obListStore instanceof AbstractStoreWithoutParam) {
+        if (Settings::getValue("cache_queue_on", false) && ($sQueueName = Settings::getValue("cache_queue_name", "cache"))) {
+
+            if ($obListStore instanceof AbstractStoreWithoutParam) {
+                $this->dispatchCleanSingleParamStoreJob($sQueueName, $obListStore);
+            } elseif ($obListStore instanceof AbstractStoreWithParam) {
+                $this->dispatchCleanSingleParamStoreJob($sQueueName, $obListStore, $this->obElement->$sField);
+            }
+
+        } elseif ($obListStore instanceof AbstractStoreWithoutParam) {
             $obListStore->clear();
         } elseif ($obListStore instanceof AbstractStoreWithParam) {
             $obListStore->clear($this->obElement->$sField);
@@ -169,7 +209,14 @@ abstract class ModelHandler
             return;
         }
 
-        $obListStore->clear();
+        if (Settings::getValue("cache_queue_on", false) && ($sQueueName = Settings::getValue("cache_queue_name", "cache"))) {
+
+            $this->dispatchCleanSingleParamStoreJob($sQueueName, $obListStore);
+
+        } else {
+
+            $obListStore->clear();
+        }
     }
 
     /**
@@ -184,12 +231,27 @@ abstract class ModelHandler
             return;
         }
 
-        $obListStore->clear($this->obElement->$sField);
-        if (empty($this->obElement->$sAdditionalField)) {
-            return;
-        }
+        if (Settings::getValue("cache_queue_on", false) && ($sQueueName = Settings::getValue("cache_queue_name", "cache"))) {
 
-        $obListStore->clear($this->obElement->$sField, $this->obElement->$sAdditionalField);
+            $this->dispatchCleanTwoParamStoreJob(
+                $sQueueName,
+                $obListStore,
+                $this->obElement->$sField,
+                $this->obElement->getOriginal($sField),
+                $this->obElement->$sAdditionalField,
+                $this->obElement->getOriginal($sAdditionalField)
+            );
+
+        } else {
+
+            $obListStore->clear($this->obElement->$sField);
+
+            if (empty($this->obElement->$sAdditionalField)) {
+                return;
+            }
+
+            $obListStore->clear($this->obElement->$sField, $this->obElement->$sAdditionalField);
+        }
     }
 
     /**
@@ -207,13 +269,27 @@ abstract class ModelHandler
             return;
         }
 
-        $obListStore->clear($this->obElement->$sField);
-        $obListStore->clear($this->obElement->$sField, $this->obElement->$sAdditionalField);
-        $obListStore->clear($this->obElement->$sField, $this->obElement->getOriginal($sField));
+        if (Settings::getValue("cache_queue_on", false) && ($sQueueName = Settings::getValue("cache_queue_name", "cache"))) {
 
-        $obListStore->clear($this->obElement->getOriginal($sField));
-        $obListStore->clear($this->obElement->getOriginal($sField), $this->obElement->$sAdditionalField);
-        $obListStore->clear($this->obElement->getOriginal($sField), $this->obElement->getOriginal($sField));
+            $this->dispatchCleanTwoParamStoreJob(
+                $sQueueName,
+                $obListStore,
+                $this->obElement->$sField,
+                $this->obElement->getOriginal($sField),
+                $this->obElement->$sAdditionalField,
+                $this->obElement->getOriginal($sAdditionalField)
+            );
+
+        } else {
+
+            $obListStore->clear($this->obElement->$sField);
+            $obListStore->clear($this->obElement->$sField, $this->obElement->$sAdditionalField);
+            $obListStore->clear($this->obElement->$sField, $this->obElement->getOriginal($sField));
+
+            $obListStore->clear($this->obElement->getOriginal($sField));
+            $obListStore->clear($this->obElement->getOriginal($sField), $this->obElement->$sAdditionalField);
+            $obListStore->clear($this->obElement->getOriginal($sField), $this->obElement->getOriginal($sField));
+        }
     }
 
     /**
@@ -232,5 +308,70 @@ abstract class ModelHandler
         }
 
         return true;
+    }
+
+        /**
+     * Dispatch job to clear item cache
+     * @param string $sQueueName
+     * @param string $sItemClass
+     * @param int    $iElementID
+     * @param int    $iOldElementID
+     */
+    protected function dispatchCleanCacheItemJob($sQueueName, $sItemClass, $iElementID, $iOldElementID = null)
+    {
+        CleanCacheItemJob::dispatch($iElementID, $sItemClass)->onQueue($sQueueName);
+
+        if ($iElementID == $iOldElementID || empty($iOldElementID)) {
+            return;
+        }
+
+        CleanCacheItemJob::dispatch($iOldElementID, $sItemClass)->onQueue($sQueueName);
+    }
+
+    /**
+     * Dispatch job to clear store cache
+     * @param string $sQueueName
+     * @param AbstractStoreWithoutParam|AbstractStoreWithParam $obListStore
+     * @param null|string|int                                  $sValue
+     * @param null|string|int                                  $sOldValue
+     */
+    protected function dispatchCleanSingleParamStoreJob($sQueueName, $obListStore, $sValue = null, $sOldValue = null)
+    {
+        if ($obListStore instanceof AbstractStoreWithoutParam) {
+
+            $obJob = new CleanSingleParamStoreCacheJob(get_class($obListStore));
+
+        } elseif ($obListStore instanceof AbstractStoreWithParam) {
+
+            $obJob = new CleanSingleParamStoreCacheJob(
+                get_class($obListStore),
+                $sValue,
+                $sOldValue
+            );
+        }
+
+        Queue::push($obJob, null, $sQueueName);
+    }
+
+    /**
+     * Dispatch job to clear store cache
+     * @param string $sQueueName
+     * @param AbstractStoreWithTwoParam $obListStore
+     * @param null|string|int           $sValue
+     * @param null|string|int           $sOldValue
+     * @param null|string|int           $sSecondValue
+     * @param null|string|int           $sOldSecondValue
+     */
+    protected function dispatchCleanTwoParamStoreJob($sQueueName, $obListStore, $sValue, $sOldValue, $sSecondValue, $sOldSecondValue)
+    {
+        $obJob = new CleanTwoParamStoreCacheJob(
+            get_class($obListStore),
+            $sValue,
+            $sOldValue,
+            $sSecondValue,
+            $sOldSecondValue
+        );
+
+        Queue::push($obJob, null, $sQueueName);
     }
 }
