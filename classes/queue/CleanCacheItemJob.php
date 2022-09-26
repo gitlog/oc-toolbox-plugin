@@ -50,4 +50,14 @@ class CleanCacheItemJob implements ShouldQueue
 
         return true;
     }
+
+    /**
+     * Get the tags that should be assigned to the job.
+     *
+     * @return array
+     */
+    public function tags()
+    {
+        return ['CleanCacheItem', $this->sClassName .':'. $this->iElementID];
+    }
 }
