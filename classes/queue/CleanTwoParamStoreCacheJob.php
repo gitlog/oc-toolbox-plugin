@@ -5,6 +5,8 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Lovata\Toolbox\Classes\Store\AbstractStoreWithoutParam;
+use Lovata\Toolbox\Classes\Store\AbstractStoreWithParam;
 
 /**
  * Class CleanTwoParamStoreCacheJob
@@ -84,5 +86,26 @@ class CleanTwoParamStoreCacheJob implements ShouldQueue
         $this->obListStore->get($this->sOriginalValue, $this->sAdditionalOriginalValue);
 
         return true;
+    }
+
+    /**
+     * Get the tags that should be assigned to the job.
+     *
+     * @return array
+     */
+    public function tags()
+    {
+        if ($this->obListStore instanceof AbstractStoreWithoutParam) {
+            return ['CleanStoreCache', 'CleanTwoParamStoreCache', $this->sClassName];
+        } elseif ($this->obListStore instanceof AbstractStoreWithParam) {
+            return [
+                'CleanStoreCache',
+                'CleanTwoParamStoreCache',
+                'additionalOriginalValue'. $this->sAdditionalOriginalValue,
+                'additionalValue'. $this->sAdditionalValue,
+                'originaValue:'. $this->sOriginalValue,
+                'value:'. $this->sValue,
+            ];
+        }
     }
 }

@@ -5,7 +5,6 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-
 use Lovata\Toolbox\Classes\Store\AbstractStoreWithoutParam;
 use Lovata\Toolbox\Classes\Store\AbstractStoreWithParam;
 
@@ -66,5 +65,24 @@ class CleanSingleParamStoreCacheJob implements ShouldQueue
         }
 
         return true;
+    }
+
+    /**
+     * Get the tags that should be assigned to the job.
+     *
+     * @return array
+     */
+    public function tags()
+    {
+        if ($this->obListStore instanceof AbstractStoreWithoutParam) {
+            return ['CleanStoreCache', 'CleanSingleParamStoreCache', $this->sClassName];
+        } elseif ($this->obListStore instanceof AbstractStoreWithParam) {
+            return [
+                'CleanStoreCache',
+                'CleanSingleParamStoreCache',
+                'originaValue:'. $this->sOriginalValue,
+                'value:'. $this->sValue,
+            ];
+        }
     }
 }
