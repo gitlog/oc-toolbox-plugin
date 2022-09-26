@@ -123,14 +123,7 @@ abstract class ModelHandler
         $sItemClass = $this->getItemClass();
         $sField = $this->sIdentifierField;
 
-        if (Settings::getValue("cache_queue_on", false) && ($sQueueName = Settings::getValue("cache_queue_name", "cache"))) {
-
-            $this->dispatchCleanCacheItemJob($sQueueName, $sItemClass, $this->obElement->$sField, $this->obElement->getOriginal($sField));
-
-        } else {
-
-            $sItemClass::clearCache($this->obElement->$sField);
-        }
+        $sItemClass::clearCache($this->obElement->$sField);
     }
 
     /**
