@@ -1,5 +1,6 @@
 <?php namespace Lovata\Toolbox\Classes\Queue;
 
+use Throwable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -84,5 +85,16 @@ class CleanSingleParamStoreCacheJob implements ShouldQueue
                 'value:'. $this->sValue,
             ];
         }
+    }
+
+    /**
+     * Handle a job failure.
+     *
+     * @param  \Throwable  $exception
+     * @return void
+     */
+    public function failed(Throwable $exception)
+    {
+        $this->release();
     }
 }

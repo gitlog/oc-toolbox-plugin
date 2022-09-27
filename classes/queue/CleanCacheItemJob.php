@@ -1,5 +1,6 @@
 <?php namespace Lovata\Toolbox\Classes\Queue;
 
+use Throwable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -59,5 +60,16 @@ class CleanCacheItemJob implements ShouldQueue
     public function tags()
     {
         return ['CleanCacheItem', $this->sClassName .':'. $this->iElementID];
+    }
+
+    /**
+     * Handle a job failure.
+     *
+     * @param  \Throwable  $exception
+     * @return void
+     */
+    public function failed(Throwable $exception)
+    {
+        $this->release();
     }
 }
