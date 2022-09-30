@@ -272,9 +272,10 @@ abstract class AbstractCollectionType extends AbstractObjectType
      */
     protected function getFieldList(): array
     {
+        $sRelatedItemTypeClass = static::RELATED_ITEM_TYPE_CLASS;
         $arFieldList = [
             'list'     => [
-                'type'        => Type::listOf($this->getRelationType(static::RELATED_ITEM_TYPE_CLASS::TYPE_ALIAS)),
+                'type'        => Type::listOf($this->getRelationType($sRelatedItemTypeClass::TYPE_ALIAS)),
                 'description' => static::getDescription(),
             ],
             'pageInfo' => [
