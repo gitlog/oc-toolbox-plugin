@@ -1,16 +1,14 @@
 <?php namespace Lovata\Toolbox\Classes\Api\Mutation;
 
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQL\Type\Definition\Type;
-
-use Lovata\Toolbox\Classes\Api\Response\ApiDataResponse;
 use Lovata\Toolbox\Classes\Api\Type\Custom\Type as CustomType;
+use Lovata\Toolbox\Classes\Api\Response\ApiDataResponse;
 use Lovata\Toolbox\Classes\Api\Type\AbstractApiType;
 
-use DB;
-use Closure;
 use Illuminate\Validation\ValidationException;
+use GraphQL\Type\Definition\Type;
 use Lang;
+use DB;
 
 /**
  * Class AbstractMutationType
@@ -64,9 +62,9 @@ abstract class AbstractMutationType extends AbstractApiType
 
     /**
      * Get resolve method for type
-     * @return Closure|null
+     * @return callable|null
      */
-    protected function getResolveMethod(): ?Closure
+    protected function getResolveMethod(): ?callable
     {
         return function ($obValue, $arArgumentList, $sContext, $obResolveInfo) {
             $this->arArgumentList = $arArgumentList;

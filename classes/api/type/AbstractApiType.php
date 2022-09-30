@@ -1,19 +1,19 @@
 <?php namespace Lovata\Toolbox\Classes\Api\Type;
 
+use Event;
+use Closure;
+use Illuminate\Support\Arr;
+
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\ObjectType;
 
+use Lang;
 use Lovata\Toolbox\Classes\Api\PermissionContainer;
 use Lovata\Toolbox\Classes\Api\Response\ApiDataResponse;
 use Lovata\Toolbox\Classes\Helper\UserHelper;
 
 use October\Rain\Extension\ExtendableTrait;
 use October\Rain\Support\Traits\Singleton;
-
-use Event;
-use Closure;
-use Lang;
-use Illuminate\Support\Arr;
 
 /**
  * Class AbstractApiType
@@ -211,9 +211,9 @@ abstract class AbstractApiType
 
     /**
      * Get resolve method for type
-     * @return Closure|null
+     * @return callable|null
      */
-    protected function getResolveMethod(): ?Closure
+    protected function getResolveMethod(): ?callable
     {
         return null;
     }
