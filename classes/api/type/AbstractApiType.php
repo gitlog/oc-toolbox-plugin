@@ -42,6 +42,7 @@ abstract class AbstractApiType
     const PERMISSION                   = PermissionContainer::PERMISSION_CODE_GUEST;
     const EVENT_EXTEND_PERMISSION_LIST = 'lovata.api.extend.permissions';
     const EVENT_EXTEND_ACCESS_LOGIC    = 'lovata.api.extend.access_logic';
+    const EVENT_EXTEND_FIELD_LIST    = 'lovata.api.extend.field_list';
 
     /**
      * @var array Behaviors implemented by this class.
