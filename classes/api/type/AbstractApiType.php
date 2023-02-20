@@ -38,11 +38,12 @@ abstract class AbstractApiType
     use ExtendableTrait;
     use Singleton;
 
+    const TYPE                         = TypeList::OBJECT_TYPE;
     const TYPE_ALIAS                   = '';
     const PERMISSION                   = PermissionContainer::PERMISSION_CODE_GUEST;
+    const EVENT_EXTEND_FIELD_LIST      = 'lovata.api.extend.fields';
     const EVENT_EXTEND_PERMISSION_LIST = 'lovata.api.extend.permissions';
     const EVENT_EXTEND_ACCESS_LOGIC    = 'lovata.api.extend.access_logic';
-    const EVENT_EXTEND_FIELD_LIST    = 'lovata.api.extend.field_list';
 
     /**
      * @var array Behaviors implemented by this class.
@@ -58,6 +59,12 @@ abstract class AbstractApiType
     /** @var int|null */
     protected $iUserId = null;
 
+    /** @var array $arInterfaceList */
+    protected $arInterfaceList = [];
+
+    /** @var array $arFieldList */
+    protected $arFieldList = [];
+
     /** @var string $sDescription */
     protected $sDescription = '';
 
@@ -66,8 +73,11 @@ abstract class AbstractApiType
      */
     protected function init()
     {
+        $this->arInterfaceList = $this->getInterfaceList();
+        $this->arFieldList     = $this->getFieldList();
         $this->sDescription    = $this->getDescription();
         $this->extendableConstruct();
+        $this->fireEventExtendFields();
         $this->initClient();
         $this->initClientPermissions();
         $this->extendFrontendTypeFactory();
@@ -179,6 +189,47 @@ abstract class AbstractApiType
     }
 
     /**
+     * Add fields
+     * @param array $arFieldList
+     * @return void
+     */
+    public function addFields(array $arFieldList)
+    {
+        $this->arFieldList = array_merge($this->arFieldList, $arFieldList);
+    }
+
+    /**
+     * Remove fields
+     * @param array $arFieldList
+     * @return void
+     */
+    public function removeFields(array $arFieldList)
+    {
+        if (empty($arFieldList)) {
+            return;
+        }
+
+        foreach ($arFieldList as $sKey) {
+            unset($this->arFieldList[$sKey]);
+        }
+    }
+
+    /**
+     * Get interface fields
+     * @return array
+     */
+    protected function getInterfaceList(): array
+    {
+        return [];
+    }
+
+    /**
+     * Get type fields
+     * @return array
+     */
+    abstract protected function getFieldList(): array;
+
+    /**
      * Get type description
      * @return string
      */
@@ -191,7 +242,44 @@ abstract class AbstractApiType
      * Get type config
      * @return array
      */
-    abstract protected function getTypeConfig(): array;
+    protected function getTypeConfig(): array
+    {
+        $arTypeConfig = [
+            'name'        => static::TYPE_ALIAS,
+            'fields'      => $this->arFieldList,
+            'interfaces'  => $this->arInterfaceList,
+            'description' => $this->sDescription,
+        ];
+
+        return $arTypeConfig;
+    }
+
+    /**
+     * Get resolve method for type
+     * @return callable|null
+     */
+    protected function getResolveMethod(): ?callable
+    {
+        return null;
+    }
+
+    /**
+     * Get config for "args" attribute
+     * @return array|null
+     */
+    protected function getArguments(): ?array
+    {
+        return null;
+    }
+
+    /**
+     * Fire event extend fields
+     * @return void
+     */
+    protected function fireEventExtendFields()
+    {
+        Event::fire(self::EVENT_EXTEND_FIELD_LIST, [$this]);
+    }
 
     /**
      * @param string $sTypeAlias
