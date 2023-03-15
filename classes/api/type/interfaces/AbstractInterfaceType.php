@@ -1,7 +1,7 @@
 <?php namespace Lovata\Toolbox\Classes\Api\Type\Interfaces;
 
 use GraphQL\Type\Definition\ObjectType;
-use Lovata\Toolbox\Classes\Api\Type\AbstractApiType;
+use Lovata\Toolbox\Classes\Api\Type\AbstractObjectType;
 use Lovata\Toolbox\Classes\Api\Type\TypeList;
 
 /**
@@ -9,7 +9,7 @@ use Lovata\Toolbox\Classes\Api\Type\TypeList;
  * @package Lovata\Toolbox\Classes\Api\Type
  * @author  Igor Tverdokhleb, i.tverdokhleb@lovata.com, LOVATA Group
  */
-abstract class AbstractInterfaceType extends AbstractApiType
+abstract class AbstractInterfaceType extends AbstractObjectType
 {
     const ITEM_CLASS = '';
     const TYPE = TypeList::INTERFACE_TYPE;

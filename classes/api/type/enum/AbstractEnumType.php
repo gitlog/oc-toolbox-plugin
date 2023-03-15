@@ -67,4 +67,9 @@ abstract class AbstractEnumType extends AbstractApiType
         $this->arValueList = $this->getValueList();
         parent::init();
     }
+    
+    protected function getFieldList(): array
+    {
+        return [];
+    }
 }
