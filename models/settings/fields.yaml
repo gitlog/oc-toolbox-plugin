@@ -45,13 +45,3 @@ tabs:
             span: left
             label: lovata.toolbox::lang.field.import_queue_name
             type: text
-        cache_queue_on:
-            tab: lovata.toolbox::lang.tab.cache
-            span: left
-            label: lovata.toolbox::lang.field.cache_queue_on
-            type: checkbox
-        cache_queue_name:
-            tab: lovata.toolbox::lang.tab.cache
-            span: left
-            label: lovata.toolbox::lang.field.cache_queue_name
-            type: text
