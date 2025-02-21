@@ -74,6 +74,11 @@
         'height'                   => 'Height',
         'length'                   => 'Length',
         'width'                    => 'Width',
+        'site_list'                => 'Site list',
+        'site_id'                  => 'Site ID',
+        'site'                     => 'Site',
+        'left'                     => 'Left',
+        'right'                    => 'Right',
 
         'sort_order' => 'Sorting',
         'created_at' => 'Created',
